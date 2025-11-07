@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Moon, Sparkles, Flame, Play, Palette, ShoppingBag, Leaf, Smartphone, Timer, Music, MapPin, Store } from "lucide-react";
 
@@ -163,6 +164,7 @@ function QuizModal({ open, onClose, onFinish }) {
 export default function MoodCandleLanding() {
   const [quizOpen, setQuizOpen] = useState(false);
   const [cartItems, setCartItems] = useState(0);
+  const router = useRouter();
 
   const addToCart = () => setCartItems(v => v + 1);
 
@@ -259,7 +261,21 @@ export default function MoodCandleLanding() {
           <SectionTitle kicker="Sản phẩm" title="Chọn nến theo tâm trạng của bạn" subtitle="Hai phân khúc giá · chuẩn O2O – mua online hoặc nhận tại cửa hàng." />
           <div className="mt-10 grid md:grid-cols-2 gap-6">
             {products.map((p, idx) => (
-              <div key={idx} className={`rounded-2xl p-6 border bg-zinc-900/40 ${p.highlight ? "border-amber-400/40" : "border-white/10"}`}>
+              <div
+                key={idx}
+                role="button"
+                tabIndex={0}
+                onClick={() => router.push("/products")}
+                onKeyDown={event => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    router.push("/products");
+                  }
+                }}
+                className={`rounded-2xl p-6 border bg-zinc-900/40 transition cursor-pointer hover:border-amber-400/60 hover:bg-zinc-900/60 focus:outline-none focus:ring-2 focus:ring-amber-400/40 ${
+                  p.highlight ? "border-amber-400/40" : "border-white/10"
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div className="text-lg font-semibold">{p.tier}</div>
                   {p.highlight && <span className="text-xs px-2 py-1 rounded-full bg-amber-400 text-zinc-900 font-semibold">Bán chạy</span>}
@@ -274,10 +290,26 @@ export default function MoodCandleLanding() {
                   ))}
                 </div>
                 <div className="mt-5 flex items-center gap-3">
-                  <button onClick={() => { addToCart(); }} className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 font-semibold ${p.highlight ? "bg-amber-400 text-zinc-900" : "border border-white/10"}`}>
+                  <button
+                    onClick={event => {
+                      event.stopPropagation();
+                      addToCart();
+                    }}
+                    className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 font-semibold ${
+                      p.highlight ? "bg-amber-400 text-zinc-900" : "border border-white/10"
+                    }`}
+                  >
                     <ShoppingBag size={16} /> {p.cta}
                   </button>
-                  <button onClick={() => setQuizOpen(true)} className="text-sm underline underline-offset-4 text-amber-200/80 hover:text-amber-100">Dùng thử Mood Quiz</button>
+                  <button
+                    onClick={event => {
+                      event.stopPropagation();
+                      setQuizOpen(true);
+                    }}
+                    className="text-sm underline underline-offset-4 text-amber-200/80 hover:text-amber-100"
+                  >
+                    Dùng thử Mood Quiz
+                  </button>
                 </div>
               </div>
             ))}
@@ -321,7 +353,7 @@ export default function MoodCandleLanding() {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-2 font-semibold"><Flame className="text-amber-400" size={20}/> MoodCandle</div>
             <div className="text-sm text-amber-200/70">
-              © {new Date().getFullYear()} MoodCandle · "Thắp hương, chạm cảm xúc."
+              © {new Date().getFullYear()} MoodCandle · &ldquo;Thắp hương, chạm cảm xúc.&rdquo;
             </div>
           </div>
         </Container>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Moon, Sparkles, Flame, Play, Palette, ShoppingBag, Leaf, Smartphone, Timer, Music, MapPin, Store } from "lucide-react";
 import { useCart } from "./context/cart-context";
+import AccountControls from "./components/account-controls";
 import { getMoodSuggestion } from "./lib/catalog";
 
 // --- Helper components ------------------------------------------------------
@@ -211,10 +212,11 @@ export default function MoodCandleLanding() {
             <a href="#gallery" className="hover:text-amber-100">Cộng đồng</a>
             <a href="#pickup" className="hover:text-amber-100">Pick‑up</a>
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
             <button onClick={() => setQuizOpen(true)} className="hidden sm:inline-flex items-center gap-2 rounded-full border border-amber-400/30 px-3 py-1.5 text-sm hover:border-amber-400/60">
               <Sparkles size={16} /> Mood Quiz
             </button>
+            <AccountControls />
             <Link
               href="/cart"
               className="relative inline-flex items-center gap-2 rounded-full bg-amber-400 text-zinc-900 px-3 py-1.5 text-sm font-semibold"

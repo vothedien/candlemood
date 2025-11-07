@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { ArrowLeft, Filter, Flame, ShoppingBag, Star } from "lucide-react";
 import { useCart } from "../context/cart-context";
 import { moodFilters, productCatalog } from "../lib/catalog";
+import AccountControls from "../components/account-controls";
 
 const Container = ({ children, className = "" }) => (
   <div className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}>{children}</div>
@@ -26,13 +27,14 @@ export default function ProductsPage() {
           <div className="flex items-center gap-2 text-sm font-semibold text-amber-100">
             <Flame className="text-amber-400" size={20} /> MoodCandle
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
             <Link
               href="/"
               className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-sm text-amber-200/80 hover:border-amber-400/60 hover:text-amber-100"
             >
               <ArrowLeft size={16} /> Về trang chủ
             </Link>
+            <AccountControls />
             <Link
               href="/cart"
               className="relative inline-flex items-center gap-2 rounded-full bg-amber-400 px-3 py-1.5 text-sm font-semibold text-zinc-900"

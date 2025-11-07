@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Flame, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import AccountControls from "../components/account-controls";
 import { useCart } from "../context/cart-context";
+import { useAuth } from "../context/auth-context";
 
 const Container = ({ children, className = "" }) => (
   <div className={`mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 ${className}`}>{children}</div>
@@ -12,16 +16,30 @@ const formatCurrency = value => `${Math.round(value).toLocaleString("vi-VN")}đ`
 
 export default function CartPage() {
   const { items, addItem, decrementItem, removeItem, clearCart, totalItems, totalCost } = useCart();
+  const { user } = useAuth();
+  const router = useRouter();
+  const [orderComplete, setOrderComplete] = useState(false);
   const hasItems = items.length > 0;
+
+  const handleCheckout = () => {
+    if (!user) {
+      router.push(`/auth/login?redirect=${encodeURIComponent("/cart")}`);
+      return;
+    }
+
+    setOrderComplete(true);
+    clearCart();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900 text-amber-50">
       <header className="border-b border-white/10 bg-zinc-950/70 backdrop-blur-md">
-        <Container className="flex h-16 items-center justify-between">
+        <Container className="flex h-16 flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-amber-100">
             <Flame className="text-amber-400" size={20} /> MoodCandle
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+            <AccountControls />
             <Link
               href="/products"
               className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-sm text-amber-200/80 hover:border-amber-400/60 hover:text-amber-100"
@@ -42,6 +60,12 @@ export default function CartPage() {
 
       <main className="py-12 sm:py-16">
         <Container className="space-y-8">
+          {orderComplete && !hasItems && (
+            <div className="rounded-3xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-4 text-sm text-emerald-100">
+              Cảm ơn {user?.name || "bạn"}! Đơn hàng giả lập của bạn đã được ghi nhận. Chúng mình sẽ liên hệ qua email {user?.email || "đã đăng ký"} để xác nhận.
+            </div>
+          )}
+
           <div>
             <h1 className="text-3xl font-semibold text-amber-50">Giỏ hàng của bạn</h1>
             <p className="mt-2 text-sm text-amber-200/80">
@@ -121,10 +145,18 @@ export default function CartPage() {
                   <div className="text-2xl font-semibold text-amber-50">{formatCurrency(totalCost)}</div>
                   <p className="mt-1 text-xs text-amber-200/70">Đã bao gồm gói playlist QR và LED đổi màu.</p>
                 </div>
-                <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-6 py-3 text-base font-semibold text-zinc-900 transition hover:bg-amber-300">
+                <button
+                  onClick={handleCheckout}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-amber-400 px-6 py-3 text-base font-semibold text-zinc-900 transition hover:bg-amber-300"
+                >
                   Hoàn tất đơn hàng
                 </button>
               </div>
+              {!user && (
+                <p className="mt-3 text-xs text-amber-200/70">
+                  Bạn cần đăng nhập để hoàn tất thanh toán. Chúng mình sẽ chuyển bạn tới trang đăng nhập khi bấm nút.
+                </p>
+              )}
             </section>
           )}
         </Container>

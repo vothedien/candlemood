@@ -1,8 +1,11 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Moon, Sparkles, Flame, Play, Palette, ShoppingBag, Leaf, Smartphone, Timer, Music, MapPin, Store } from "lucide-react";
+import { useCart } from "./context/cart-context";
+import { getMoodSuggestion } from "./lib/catalog";
 
 // --- Helper components ------------------------------------------------------
 const Container = ({ children, className = "" }) => (
@@ -32,18 +35,27 @@ const Pill = ({ children }) => (
 // --- Mock product data ------------------------------------------------------
 const products = [
   {
+    id: "starter-standard",
+    name: "MoodCandle Standard Set",
     tier: "Standard",
     price: "89k – 99k",
+    priceDisplay: "99.000đ",
+    priceValue: 99000,
     features: [
       { icon: <Music size={16} />, text: "QR playlist theo mood" },
       { icon: <Leaf size={16} />, text: "Sáp đậu nành hữu cơ" },
       { icon: <Flame size={16} />, text: "Bấc cotton / gỗ" },
     ],
     cta: "Thêm vào giỏ",
+    mood: "relax",
   },
   {
+    id: "smart-pro",
+    name: "MoodCandle Smart Pro",
     tier: "Smart",
     price: "349k – 449k",
+    priceDisplay: "449.000đ",
+    priceValue: 449000,
     highlight: true,
     features: [
       { icon: <Smartphone size={16} />, text: "App điều khiển màu LED" },
@@ -52,6 +64,7 @@ const products = [
       { icon: <Palette size={16} />, text: "Đổi màu theo mood" },
     ],
     cta: "Mua bản Smart",
+    mood: "all",
   },
 ];
 
@@ -163,10 +176,26 @@ function QuizModal({ open, onClose, onFinish }) {
 // --- Page -------------------------------------------------------------------
 export default function MoodCandleLanding() {
   const [quizOpen, setQuizOpen] = useState(false);
-  const [cartItems, setCartItems] = useState(0);
   const router = useRouter();
+  const { addItem, totalItems } = useCart();
 
-  const addToCart = () => setCartItems(v => v + 1);
+  const addTierProductToCart = product => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.priceValue,
+      priceDisplay: product.priceDisplay ?? product.price,
+      mood: product.mood,
+    });
+  };
+
+  const handleQuizFinish = selectedMood => {
+    if (!selectedMood) return;
+    const suggestion = getMoodSuggestion(selectedMood.key);
+    if (suggestion) {
+      addItem(suggestion);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900 text-amber-50 selection:bg-amber-300 selection:text-zinc-900">
@@ -186,12 +215,17 @@ export default function MoodCandleLanding() {
             <button onClick={() => setQuizOpen(true)} className="hidden sm:inline-flex items-center gap-2 rounded-full border border-amber-400/30 px-3 py-1.5 text-sm hover:border-amber-400/60">
               <Sparkles size={16} /> Mood Quiz
             </button>
-            <button className="relative inline-flex items-center gap-2 rounded-full bg-amber-400 text-zinc-900 px-3 py-1.5 text-sm font-semibold">
+            <Link
+              href="/cart"
+              className="relative inline-flex items-center gap-2 rounded-full bg-amber-400 text-zinc-900 px-3 py-1.5 text-sm font-semibold"
+            >
               <ShoppingBag size={16} /> Giỏ hàng
-              {cartItems > 0 && (
-                <span className="absolute -top-2 -right-2 h-5 min-w-[20px] rounded-full bg-rose-500 text-white text-[10px] grid place-items-center px-1">{cartItems}</span>
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 h-5 min-w-[20px] rounded-full bg-rose-500 text-white text-[10px] grid place-items-center px-1">
+                  {totalItems}
+                </span>
               )}
-            </button>
+            </Link>
           </div>
         </Container>
       </header>
@@ -293,7 +327,7 @@ export default function MoodCandleLanding() {
                   <button
                     onClick={event => {
                       event.stopPropagation();
-                      addToCart();
+                      addTierProductToCart(p);
                     }}
                     className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 font-semibold ${
                       p.highlight ? "bg-amber-400 text-zinc-900" : "border border-white/10"
@@ -362,7 +396,7 @@ export default function MoodCandleLanding() {
       <QuizModal
         open={quizOpen}
         onClose={() => setQuizOpen(false)}
-        onFinish={() => addToCart()}
+        onFinish={handleQuizFinish}
       />
     </div>
   );

@@ -1,7 +1,12 @@
 "use client";
 import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Moon, Sparkles, Flame, Play, Palette, ShoppingBag, Leaf, Smartphone, Timer, Music, MapPin, Store } from "lucide-react";
+import { useCart } from "./context/cart-context";
+import AccountControls from "./components/account-controls";
+import { getMoodSuggestion } from "./lib/catalog";
 
 // --- Helper components ------------------------------------------------------
 const Container = ({ children, className = "" }) => (
@@ -31,18 +36,27 @@ const Pill = ({ children }) => (
 // --- Mock product data ------------------------------------------------------
 const products = [
   {
+    id: "starter-standard",
+    name: "MoodCandle Standard Set",
     tier: "Standard",
     price: "89k – 99k",
+    priceDisplay: "99.000đ",
+    priceValue: 99000,
     features: [
       { icon: <Music size={16} />, text: "QR playlist theo mood" },
       { icon: <Leaf size={16} />, text: "Sáp đậu nành hữu cơ" },
       { icon: <Flame size={16} />, text: "Bấc cotton / gỗ" },
     ],
     cta: "Thêm vào giỏ",
+    mood: "relax",
   },
   {
+    id: "smart-pro",
+    name: "MoodCandle Smart Pro",
     tier: "Smart",
     price: "349k – 449k",
+    priceDisplay: "449.000đ",
+    priceValue: 449000,
     highlight: true,
     features: [
       { icon: <Smartphone size={16} />, text: "App điều khiển màu LED" },
@@ -51,6 +65,7 @@ const products = [
       { icon: <Palette size={16} />, text: "Đổi màu theo mood" },
     ],
     cta: "Mua bản Smart",
+    mood: "all",
   },
 ];
 
@@ -162,9 +177,26 @@ function QuizModal({ open, onClose, onFinish }) {
 // --- Page -------------------------------------------------------------------
 export default function MoodCandleLanding() {
   const [quizOpen, setQuizOpen] = useState(false);
-  const [cartItems, setCartItems] = useState(0);
+  const router = useRouter();
+  const { addItem, totalItems } = useCart();
 
-  const addToCart = () => setCartItems(v => v + 1);
+  const addTierProductToCart = product => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.priceValue,
+      priceDisplay: product.priceDisplay ?? product.price,
+      mood: product.mood,
+    });
+  };
+
+  const handleQuizFinish = selectedMood => {
+    if (!selectedMood) return;
+    const suggestion = getMoodSuggestion(selectedMood.key);
+    if (suggestion) {
+      addItem(suggestion);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-950 to-zinc-900 text-amber-50 selection:bg-amber-300 selection:text-zinc-900">
@@ -172,7 +204,7 @@ export default function MoodCandleLanding() {
       <header className="sticky top-0 z-40 border-b border-white/10 bg-zinc-950/70 backdrop-blur-md">
         <Container className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2 font-semibold">
-            <Flame className="text-amber-400" size={22} /> MoodCandle
+            <img src="/candlelogo.png" alt="MoodCandle logo" className="w-20 h-20 object-contain" /> MoodCandle
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm text-amber-200/80">
             <a href="#how" className="hover:text-amber-100">How it works</a>
@@ -180,16 +212,22 @@ export default function MoodCandleLanding() {
             <a href="#gallery" className="hover:text-amber-100">Cộng đồng</a>
             <a href="#pickup" className="hover:text-amber-100">Pick‑up</a>
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
             <button onClick={() => setQuizOpen(true)} className="hidden sm:inline-flex items-center gap-2 rounded-full border border-amber-400/30 px-3 py-1.5 text-sm hover:border-amber-400/60">
               <Sparkles size={16} /> Mood Quiz
             </button>
-            <button className="relative inline-flex items-center gap-2 rounded-full bg-amber-400 text-zinc-900 px-3 py-1.5 text-sm font-semibold">
+            <AccountControls />
+            <Link
+              href="/cart"
+              className="relative inline-flex items-center gap-2 rounded-full bg-amber-400 text-zinc-900 px-3 py-1.5 text-sm font-semibold"
+            >
               <ShoppingBag size={16} /> Giỏ hàng
-              {cartItems > 0 && (
-                <span className="absolute -top-2 -right-2 h-5 min-w-[20px] rounded-full bg-rose-500 text-white text-[10px] grid place-items-center px-1">{cartItems}</span>
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 h-5 min-w-[20px] rounded-full bg-rose-500 text-white text-[10px] grid place-items-center px-1">
+                  {totalItems}
+                </span>
               )}
-            </button>
+            </Link>
           </div>
         </Container>
       </header>
@@ -259,7 +297,21 @@ export default function MoodCandleLanding() {
           <SectionTitle kicker="Sản phẩm" title="Chọn nến theo tâm trạng của bạn" subtitle="Hai phân khúc giá · chuẩn O2O – mua online hoặc nhận tại cửa hàng." />
           <div className="mt-10 grid md:grid-cols-2 gap-6">
             {products.map((p, idx) => (
-              <div key={idx} className={`rounded-2xl p-6 border bg-zinc-900/40 ${p.highlight ? "border-amber-400/40" : "border-white/10"}`}>
+              <div
+                key={idx}
+                role="button"
+                tabIndex={0}
+                onClick={() => router.push("/products")}
+                onKeyDown={event => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    router.push("/products");
+                  }
+                }}
+                className={`rounded-2xl p-6 border bg-zinc-900/40 transition cursor-pointer hover:border-amber-400/60 hover:bg-zinc-900/60 focus:outline-none focus:ring-2 focus:ring-amber-400/40 ${
+                  p.highlight ? "border-amber-400/40" : "border-white/10"
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div className="text-lg font-semibold">{p.tier}</div>
                   {p.highlight && <span className="text-xs px-2 py-1 rounded-full bg-amber-400 text-zinc-900 font-semibold">Bán chạy</span>}
@@ -274,10 +326,26 @@ export default function MoodCandleLanding() {
                   ))}
                 </div>
                 <div className="mt-5 flex items-center gap-3">
-                  <button onClick={() => { addToCart(); }} className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 font-semibold ${p.highlight ? "bg-amber-400 text-zinc-900" : "border border-white/10"}`}>
+                  <button
+                    onClick={event => {
+                      event.stopPropagation();
+                      addTierProductToCart(p);
+                    }}
+                    className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 font-semibold ${
+                      p.highlight ? "bg-amber-400 text-zinc-900" : "border border-white/10"
+                    }`}
+                  >
                     <ShoppingBag size={16} /> {p.cta}
                   </button>
-                  <button onClick={() => setQuizOpen(true)} className="text-sm underline underline-offset-4 text-amber-200/80 hover:text-amber-100">Dùng thử Mood Quiz</button>
+                  <button
+                    onClick={event => {
+                      event.stopPropagation();
+                      setQuizOpen(true);
+                    }}
+                    className="text-sm underline underline-offset-4 text-amber-200/80 hover:text-amber-100"
+                  >
+                    Dùng thử Mood Quiz
+                  </button>
                 </div>
               </div>
             ))}
@@ -319,9 +387,9 @@ export default function MoodCandleLanding() {
       <footer className="pt-10 pb-16 border-t border-white/10">
         <Container>
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="flex items-center gap-2 font-semibold"><Flame className="text-amber-400" size={20}/> MoodCandle</div>
+            <div className="flex items-center gap-2 font-semibold"><img src="/candlelogo.png" alt="MoodCandle logo" className="w-20 h-20 object-contain" /> MoodCandle</div>
             <div className="text-sm text-amber-200/70">
-              © {new Date().getFullYear()} MoodCandle · "Thắp hương, chạm cảm xúc."
+              © {new Date().getFullYear()} MoodCandle · &ldquo;Thắp hương, chạm cảm xúc.&rdquo;
             </div>
           </div>
         </Container>
@@ -330,7 +398,7 @@ export default function MoodCandleLanding() {
       <QuizModal
         open={quizOpen}
         onClose={() => setQuizOpen(false)}
-        onFinish={() => addToCart()}
+        onFinish={handleQuizFinish}
       />
     </div>
   );

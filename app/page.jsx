@@ -204,7 +204,7 @@ export default function MoodCandleLanding() {
       <header className="sticky top-0 z-40 border-b border-white/10 bg-zinc-950/70 backdrop-blur-md">
         <Container className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2 font-semibold">
-            <Flame className="text-amber-400" size={22} /> MoodCandle
+            <img src="/candlelogo.png" alt="MoodCandle logo" className="w-20 h-20 object-contain" /> MoodCandle
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm text-amber-200/80">
             <a href="#how" className="hover:text-amber-100">How it works</a>
@@ -387,7 +387,7 @@ export default function MoodCandleLanding() {
       <footer className="pt-10 pb-16 border-t border-white/10">
         <Container>
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="flex items-center gap-2 font-semibold"><Flame className="text-amber-400" size={20}/> MoodCandle</div>
+            <div className="flex items-center gap-2 font-semibold"><img src="/candlelogo.png" alt="MoodCandle logo" className="w-20 h-20 object-contain" /> MoodCandle</div>
             <div className="text-sm text-amber-200/70">
               © {new Date().getFullYear()} MoodCandle · &ldquo;Thắp hương, chạm cảm xúc.&rdquo;
             </div>
